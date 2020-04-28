@@ -40,7 +40,6 @@ generated_warning() {
 	EOH
 }
 
-travisEnv=
 for version in "${versions[@]}"; do
 	rcVersion="${version%-rc}"
 
@@ -247,17 +246,4 @@ for version in "${versions[@]}"; do
 		entrypoint="$(dirname "$dockerfile")/docker-php-entrypoint"
 		sed -i 's! php ! '"$cmd"' !g' "$entrypoint"
 	done
-
-	newTravisEnv=
-	for dockerfile in "${dockerfiles[@]}"; do
-		dir="${dockerfile%Dockerfile}"
-		dir="${dir%/}"
-		variant="${dir#$version}"
-		variant="${variant#/}"
-		newTravisEnv+='\n  - VERSION='"$version VARIANT=$variant"
-	done
-	travisEnv="$newTravisEnv$travisEnv"
 done
-
-travis="$(awk -v 'RS=\n\n' '$1 == "env:" { $0 = "env:'"$travisEnv"'" } { printf "%s%s", $0, RS }' .travis.yml)"
-echo "$travis" > .travis.yml
