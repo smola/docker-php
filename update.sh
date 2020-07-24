@@ -128,7 +128,7 @@ for version in "${versions[@]}"; do
 			baseDockerfile=Dockerfile-alpine.template
 		fi
 
-		for variant in cli apache fpm zts; do
+		for variant in cli cli-debug apache fpm zts; do
 			[ -d "$version/$suite/$variant" ] || continue
 			{ generated_warning; cat "$baseDockerfile"; } > "$version/$suite/$variant/Dockerfile"
 
@@ -247,6 +247,7 @@ for version in "${versions[@]}"; do
 			-e 's!%%PHP_ASC_URL%%!'"$ascUrl"'!' \
 			-e 's!%%PHP_SHA256%%!'"$sha256"'!' \
 			-e 's!%%PHP_MD5%%!'"$md5"'!' \
+			-e 's!%%PHP_DEBUG%%!'"$([[ ${variant##*-} = debug ]] && echo "yes" || echo "no" )"'!' \
 			"${dockerfiles[@]}"
 	)
 

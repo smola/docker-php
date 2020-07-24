@@ -126,6 +126,7 @@ ENV GPG_KEYS 42670A7FE4D0441C8E4632349E4FDC074A4EF02D 5A52880781F755608BF815FC91
 ENV PHP_VERSION 7.4.8
 ENV PHP_URL="https://www.php.net/distributions/php-7.4.8.tar.xz" PHP_ASC_URL="https://www.php.net/distributions/php-7.4.8.tar.xz.asc"
 ENV PHP_SHA256="642843890b732e8af01cb661e823ae01472af1402f211c83009c9b3abd073245" PHP_MD5=""
+ENV PHP_DEBUG no
 
 RUN set -eux; \
 	\
@@ -201,7 +202,7 @@ RUN set -eux; \
 		\
 # make sure invalid --configure-flags are fatal errors instead of just warnings
 		--enable-option-checking=fatal \
-		\
+		$([ "$PHP_DEBUG" = yes ] && echo "--enable-debug") \
 # https://github.com/docker-library/php/issues/439
 		--with-mhash \
 		\
@@ -237,7 +238,7 @@ RUN set -eux; \
 	make -j "$(nproc)"; \
 	find -type f -name '*.a' -delete; \
 	make install; \
-	find /usr/local/bin /usr/local/sbin -type f -executable -exec strip --strip-all '{}' + || true; \
+	[ "$PHP_DEBUG" != yes ] && find /usr/local/bin /usr/local/sbin -type f -executable -exec strip --strip-all '{}' + || true; \
 	make clean; \
 	\
 # https://github.com/docker-library/php/issues/692 (copy default example "php.ini" files somewhere easily discoverable)

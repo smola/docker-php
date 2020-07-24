@@ -67,6 +67,7 @@ ENV GPG_KEYS CBAF69F173A0FEA4B537F470D66C9593118BCCB6 F38252826ACD957EF380D39F2F
 ENV PHP_VERSION 7.3.20
 ENV PHP_URL="https://www.php.net/distributions/php-7.3.20.tar.xz" PHP_ASC_URL="https://www.php.net/distributions/php-7.3.20.tar.xz.asc"
 ENV PHP_SHA256="43292046f6684eb13acb637276d4aa1dd9f66b0b7045e6f1493bc90db389b888" PHP_MD5=""
+ENV PHP_DEBUG no
 
 RUN set -eux; \
 	\
@@ -153,7 +154,7 @@ RUN set -eux; \
 		\
 # make sure invalid --configure-flags are fatal errors instead of just warnings
 		--enable-option-checking=fatal \
-		\
+		$([ "$PHP_DEBUG" = yes ] && echo "--enable-debug") \
 # https://github.com/docker-library/php/issues/439
 		--with-mhash \
 		\
@@ -186,7 +187,7 @@ RUN set -eux; \
 	make -j "$(nproc)"; \
 	find -type f -name '*.a' -delete; \
 	make install; \
-	find /usr/local/bin /usr/local/sbin -type f -executable -exec strip --strip-all '{}' + || true; \
+	[ "$PHP_DEBUG" != yes ] && find /usr/local/bin /usr/local/sbin -type f -executable -exec strip --strip-all '{}' + || true; \
 	make clean; \
 	\
 # https://github.com/docker-library/php/issues/692 (copy default example "php.ini" files somewhere easily discoverable)

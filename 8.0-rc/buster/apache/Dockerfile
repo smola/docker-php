@@ -126,6 +126,7 @@ ENV GPG_KEYS 1729F83938DA44E27BA0F4D3DBDB397470D12172 BFDDD28642824F8118EF77909B
 ENV PHP_VERSION 8.0.0alpha3
 ENV PHP_URL="https://downloads.php.net/~carusogabriel/php-8.0.0alpha3.tar.xz" PHP_ASC_URL="https://downloads.php.net/~carusogabriel/php-8.0.0alpha3.tar.xz.asc"
 ENV PHP_SHA256="83dac88c90bf47fad89bb2425d76243fa0356e462954d652893d05b9593ac6d0" PHP_MD5=""
+ENV PHP_DEBUG no
 
 RUN set -eux; \
 	\
@@ -201,7 +202,7 @@ RUN set -eux; \
 		\
 # make sure invalid --configure-flags are fatal errors instead of just warnings
 		--enable-option-checking=fatal \
-		\
+		$([ "$PHP_DEBUG" = yes ] && echo "--enable-debug") \
 # https://github.com/docker-library/php/issues/439
 		--with-mhash \
 		\
@@ -234,7 +235,7 @@ RUN set -eux; \
 	make -j "$(nproc)"; \
 	find -type f -name '*.a' -delete; \
 	make install; \
-	find /usr/local/bin /usr/local/sbin -type f -executable -exec strip --strip-all '{}' + || true; \
+	[ "$PHP_DEBUG" != yes ] && find /usr/local/bin /usr/local/sbin -type f -executable -exec strip --strip-all '{}' + || true; \
 	make clean; \
 	\
 # https://github.com/docker-library/php/issues/692 (copy default example "php.ini" files somewhere easily discoverable)
