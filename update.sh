@@ -45,7 +45,7 @@ generated_warning() {
 	EOH
 }
 
-travisEnv=
+githubMatrix=
 for version in "${versions[@]}"; do
 	rcVersion="${version%-rc}"
 
@@ -258,16 +258,19 @@ for version in "${versions[@]}"; do
 		sed -i 's! php ! '"$cmd"' !g' "$entrypoint"
 	done
 
-	newTravisEnv=
+	newGithubMatrix=
 	for dockerfile in "${dockerfiles[@]}"; do
 		dir="${dockerfile%Dockerfile}"
 		dir="${dir%/}"
-		variant="${dir#$version}"
-		variant="${variant#/}"
-		newTravisEnv+='\n  - VERSION='"$version VARIANT=$variant"
+		dir="${dir#$version}"
+		dir="${dir#/}"
+		suite="${dir%%/*}"
+		variant="${dir##*/}"
+		newGithubMatrix+='          - { version: "'"$version"'", suite: "'"$suite"'", variant: "'"$variant"'" }\n'
 	done
-	travisEnv="$newTravisEnv$travisEnv"
+	githubMatrix="$newGithubMatrix$githubMatrix"
 done
 
-travis="$(awk -v 'RS=\n\n' '$1 == "env:" { $0 = "env:'"$travisEnv"'" } { printf "%s%s", $0, RS }' .travis.yml)"
-echo "$travis" > .travis.yml
+perl -0777 -i -pe \
+	"s/(##<jobs>##\\n).*(^\\s*##<\\/jobs>##)/\$1$githubMatrix\$2/sm" \
+	.github/workflows/ci.yml

@@ -1,0 +1,69 @@
+name: ci
+on:
+  push:
+    branches:
+      - master
+      - staging
+  pull_request: {}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          ##<jobs>##
+          - { version: "8.0-rc", suite: "buster", variant: "cli" }
+          - { version: "8.0-rc", suite: "buster", variant: "apache" }
+          - { version: "8.0-rc", suite: "buster", variant: "fpm" }
+          - { version: "8.0-rc", suite: "buster", variant: "zts" }
+          - { version: "8.0-rc", suite: "alpine3.12", variant: "cli" }
+          - { version: "8.0-rc", suite: "alpine3.12", variant: "fpm" }
+          - { version: "7.4", suite: "buster", variant: "cli" }
+          - { version: "7.4", suite: "buster", variant: "cli-debug" }
+          - { version: "7.4", suite: "buster", variant: "apache" }
+          - { version: "7.4", suite: "buster", variant: "fpm" }
+          - { version: "7.4", suite: "buster", variant: "zts" }
+          - { version: "7.4", suite: "alpine3.12", variant: "cli" }
+          - { version: "7.4", suite: "alpine3.12", variant: "fpm" }
+          - { version: "7.4", suite: "alpine3.12", variant: "zts" }
+          - { version: "7.4", suite: "alpine3.11", variant: "cli" }
+          - { version: "7.4", suite: "alpine3.11", variant: "fpm" }
+          - { version: "7.4", suite: "alpine3.11", variant: "zts" }
+          - { version: "7.3", suite: "buster", variant: "cli" }
+          - { version: "7.3", suite: "buster", variant: "apache" }
+          - { version: "7.3", suite: "buster", variant: "fpm" }
+          - { version: "7.3", suite: "buster", variant: "zts" }
+          - { version: "7.3", suite: "stretch", variant: "cli" }
+          - { version: "7.3", suite: "stretch", variant: "apache" }
+          - { version: "7.3", suite: "stretch", variant: "fpm" }
+          - { version: "7.3", suite: "stretch", variant: "zts" }
+          - { version: "7.3", suite: "alpine3.12", variant: "cli" }
+          - { version: "7.3", suite: "alpine3.12", variant: "fpm" }
+          - { version: "7.3", suite: "alpine3.12", variant: "zts" }
+          - { version: "7.3", suite: "alpine3.11", variant: "cli" }
+          - { version: "7.3", suite: "alpine3.11", variant: "fpm" }
+          - { version: "7.3", suite: "alpine3.11", variant: "zts" }
+          - { version: "7.2", suite: "buster", variant: "cli" }
+          - { version: "7.2", suite: "buster", variant: "apache" }
+          - { version: "7.2", suite: "buster", variant: "fpm" }
+          - { version: "7.2", suite: "buster", variant: "zts" }
+          - { version: "7.2", suite: "stretch", variant: "cli" }
+          - { version: "7.2", suite: "stretch", variant: "apache" }
+          - { version: "7.2", suite: "stretch", variant: "fpm" }
+          - { version: "7.2", suite: "stretch", variant: "zts" }
+          - { version: "7.2", suite: "alpine3.12", variant: "cli" }
+          - { version: "7.2", suite: "alpine3.12", variant: "fpm" }
+          - { version: "7.2", suite: "alpine3.12", variant: "zts" }
+          - { version: "7.2", suite: "alpine3.11", variant: "cli" }
+          - { version: "7.2", suite: "alpine3.11", variant: "fpm" }
+          - { version: "7.2", suite: "alpine3.11", variant: "zts" }
+          ##</jobs>##
+    name: build ${{ matrix.version }}-${{ matrix.suite }}-${{ matrix.variant }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: print env
+        run: env | sort
+      - name: pgp-happy-eyeballs
+        run: wget -qO- 'https://github.com/tianon/pgp-happy-eyeballs/raw/master/hack-my-builds.sh' | bash
+      - name: docker build
+        run: docker build ${{ matrix.version }}/${{ matrix.suite }}/${{ matrix.variant }}
