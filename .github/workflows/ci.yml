@@ -16,6 +16,7 @@ jobs:
           - { version: "7.4", suite: "buster", variant: "cli-debug" }
           - { version: "7.3", suite: "buster", variant: "cli-debug" }
           - { version: "7.2", suite: "buster", variant: "cli-debug" }
+          - { version: "7.1", suite: "buster", variant: "cli-debug" }
           ##</jobs>##
     name: build ${{ matrix.version }}-${{ matrix.suite }}-${{ matrix.variant }}
     steps:
