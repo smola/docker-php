@@ -30,6 +30,12 @@ declare -A gpgKeys=(
 	# https://secure.php.net/gpg-keys.php#gpg-7.1
 	[7.1]='A917B1ECDA84AEC2B568FED6F50ABC807BD5DCD0 528995BFEDFBA7191D46839EF9BA0ADA31CBD89E'
 
+	# https://wiki.php.net/todo/php70
+	# ab & tyrael
+	# https://secure.php.net/downloads.php#gpg-7.0
+	# https://secure.php.net/gpg-keys.php#gpg-7.0
+	[7.0]='1A4E8B7277C42E53DBA9C7B9BCAA30EA9C0D5763 6E4F6AB321FDC07F2C332E3AC2BF0BC433CFC8B3'
+
 )
 # see https://www.php.net/downloads.php
 
