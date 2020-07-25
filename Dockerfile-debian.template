@@ -121,17 +121,35 @@ RUN set -eux; \
 	apt-get update; \
 	apt-get install -y --no-install-recommends \
 		libargon2-dev \
+##<openssl10>##
+		libcurl4-gnutls-dev \
+##</openssl10>##
+##<openssl11>##
 		libcurl4-openssl-dev \
+		libssl-dev \
+##</openssl11>##
 		libedit-dev \
 		libonig-dev \
 		libsodium-dev \
 		libsqlite3-dev \
-		libssl-dev \
 		libxml2-dev \
 		zlib1g-dev \
 		${PHP_EXTRA_BUILD_DEPS:-} \
 	; \
 	rm -rf /var/lib/apt/lists/*; \
+##<openssl10>##
+	curl -fsSLO https://www.openssl.org/source/openssl-1.0.2o.tar.gz; \
+	tar xzf openssl-1.0.2o.tar.gz; \
+	_cwd="$(pwd)"; \
+	cd openssl-1.0.2o; \
+	./config -fPIC shared --prefix=/usr/local --openssldir=/usr/local/openssl; \
+	make -j "$(nproc)"; \
+	make test; \
+	make install; \
+	export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig; \
+	cd "$_cwd"; \
+	rm -rf openssl-1.0.2o*; \
+##</openssl10>##
 	\
 	export \
 		CFLAGS="$PHP_CFLAGS" \

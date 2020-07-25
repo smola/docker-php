@@ -42,6 +42,11 @@ declare -A gpgKeys=(
 	# https://secure.php.net/gpg-keys.php#gpg-5.6
 	[5.6]='0BD78B5F97500D450838F95DFE857D9A90D90EC1 6E4F6AB321FDC07F2C332E3AC2BF0BC433CFC8B3'
 
+	# https://wiki.php.net/todo/php55
+	# jpauli & dsp & stas
+	# https://www.php.net/gpg-keys.php#gpg-5.5
+	[5.5]='0B96609E270F565C13292B24C13C70B87267B52D 0BD78B5F97500D450838F95DFE857D9A90D90EC1 F38252826ACD957EF380D39F2F7956BC5DA04B5D'
+
 )
 # see https://www.php.net/downloads.php
 
@@ -74,7 +79,7 @@ for version in "${versions[@]}"; do
 		(keys[] | select(startswith("'"$rcVersion"'."))) as $version
 		| [ $version, (
 			.[$version].source[]
-			| select(.filename | endswith(".xz"))
+			| select(.filename // "" | endswith(".xz"))
 			|
 				"https://www.php.net/distributions/" + .filename,
 				"https://www.php.net/distributions/" + .filename + ".asc",
@@ -183,6 +188,19 @@ for version in "${versions[@]}"; do
 			if [ "$has_patches" = 'no' ]; then
 				sed -ri \
 					-e '/##<has-patches>##/,/##<\/has-patches>##/d' \
+					"$version/$suite/$variant/Dockerfile"
+			fi
+
+			if [ "$versionId" -ge 50600 ]; then
+				# PHP 7 uses OpenSSL 1.1, while PHP 5 uses OpenSSL 1.0.
+				# For PHP 5.6, we patch it to support OpenSSL 1.1, but for
+				# lower versions we build OpenSSL 1.0.
+				sed -ri \
+					-e '/##<openssl10>##/,/##<\/openssl10>##/d' \
+					"$version/$suite/$variant/Dockerfile"
+			else
+				sed -ri \
+					-e '/##<openssl11>##/,/##<\/openssl11>##/d' \
 					"$version/$suite/$variant/Dockerfile"
 			fi
 

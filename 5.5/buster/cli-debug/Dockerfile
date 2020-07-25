@@ -61,11 +61,11 @@ ENV PHP_CFLAGS="-fstack-protector-strong -fpic -fpie -O2 -D_LARGEFILE_SOURCE -D_
 ENV PHP_CPPFLAGS="$PHP_CFLAGS"
 ENV PHP_LDFLAGS="-Wl,-O1 -pie"
 
-ENV GPG_KEYS A917B1ECDA84AEC2B568FED6F50ABC807BD5DCD0 528995BFEDFBA7191D46839EF9BA0ADA31CBD89E
+ENV GPG_KEYS 0B96609E270F565C13292B24C13C70B87267B52D 0BD78B5F97500D450838F95DFE857D9A90D90EC1 F38252826ACD957EF380D39F2F7956BC5DA04B5D
 
-ENV PHP_VERSION 7.1.33
-ENV PHP_URL="https://www.php.net/distributions/php-7.1.33.tar.xz" PHP_ASC_URL="https://www.php.net/distributions/php-7.1.33.tar.xz.asc"
-ENV PHP_SHA256="bd7c0a9bd5433289ee01fd440af3715309faf583f75832b64fe169c100d52968" PHP_MD5=""
+ENV PHP_VERSION 5.5.38
+ENV PHP_URL="https://www.php.net/distributions/php-5.5.38.tar.xz" PHP_ASC_URL="https://www.php.net/distributions/php-5.5.38.tar.xz.asc"
+ENV PHP_SHA256="cb527c44b48343c8557fe2446464ff1d4695155a95601083e5d1f175df95580f" PHP_MD5=""
 ENV PHP_DEBUG no
 
 RUN set -eux; \
@@ -109,10 +109,9 @@ RUN set -eux; \
 	savedAptMark="$(apt-mark showmanual)"; \
 	apt-get update; \
 	apt-get install -y --no-install-recommends \
-##<openssl11>##
-		libcurl4-openssl-dev \
-		libssl-dev \
-##</openssl11>##
+##<openssl10>##
+		libcurl4-gnutls-dev \
+##</openssl10>##
 		libedit-dev \
 		libsqlite3-dev \
 		libxml2-dev \
@@ -120,6 +119,19 @@ RUN set -eux; \
 		${PHP_EXTRA_BUILD_DEPS:-} \
 	; \
 	rm -rf /var/lib/apt/lists/*; \
+##<openssl10>##
+	curl -fsSLO https://www.openssl.org/source/openssl-1.0.2o.tar.gz; \
+	tar xzf openssl-1.0.2o.tar.gz; \
+	_cwd="$(pwd)"; \
+	cd openssl-1.0.2o; \
+	./config -fPIC shared --prefix=/usr/local --openssldir=/usr/local/openssl; \
+	make -j "$(nproc)"; \
+	make test; \
+	make install; \
+	export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig; \
+	cd "$_cwd"; \
+	rm -rf openssl-1.0.2o*; \
+##</openssl10>##
 	\
 	export \
 		CFLAGS="$PHP_CFLAGS" \

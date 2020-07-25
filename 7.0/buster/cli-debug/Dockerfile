@@ -109,10 +109,12 @@ RUN set -eux; \
 	savedAptMark="$(apt-mark showmanual)"; \
 	apt-get update; \
 	apt-get install -y --no-install-recommends \
+##<openssl11>##
 		libcurl4-openssl-dev \
+		libssl-dev \
+##</openssl11>##
 		libedit-dev \
 		libsqlite3-dev \
-		libssl-dev \
 		libxml2-dev \
 		zlib1g-dev \
 		${PHP_EXTRA_BUILD_DEPS:-} \
