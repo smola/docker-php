@@ -19,6 +19,12 @@ case "$1" in
 		mkdir -p "$dir"
 		if [ ! -f "$dir/.docker-extracted" ]; then
 			tar -Jxf /usr/src/php.tar.xz -C "$dir" --strip-components=1
+			if [ -n "$PHP_PATCH_DIR" ]; then
+				cd "$dir"
+				for p in $PHP_PATCH_DIR/*; do
+					patch -p1 < "$p"
+				done
+			fi
 			touch "$dir/.docker-extracted"
 		fi
 		;;

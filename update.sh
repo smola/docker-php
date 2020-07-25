@@ -36,6 +36,12 @@ declare -A gpgKeys=(
 	# https://secure.php.net/gpg-keys.php#gpg-7.0
 	[7.0]='1A4E8B7277C42E53DBA9C7B9BCAA30EA9C0D5763 6E4F6AB321FDC07F2C332E3AC2BF0BC433CFC8B3'
 
+	# https://wiki.php.net/todo/php56
+	# jpauli & tyrael
+	# https://secure.php.net/downloads.php#gpg-5.6
+	# https://secure.php.net/gpg-keys.php#gpg-5.6
+	[5.6]='0BD78B5F97500D450838F95DFE857D9A90D90EC1 6E4F6AB321FDC07F2C332E3AC2BF0BC433CFC8B3'
+
 )
 # see https://www.php.net/downloads.php
 
@@ -143,6 +149,7 @@ for version in "${versions[@]}"; do
 
 		for variant in cli cli-debug apache fpm zts; do
 			[ -d "$version/$suite/$variant" ] || continue
+
 			{ generated_warning; cat "$baseDockerfile"; } > "$version/$suite/$variant/Dockerfile"
 
 			echo "Generating $version/$suite/$variant/Dockerfile from $baseDockerfile + $variant-Dockerfile-block-*"
@@ -159,6 +166,26 @@ for version in "${versions[@]}"; do
 				docker-php-ext-* \
 				docker-php-source \
 				"$version/$suite/$variant/"
+
+			has_patches=no
+			for p in *.patch ; do
+				pv="${p}"
+				pv="${pv##php}"
+				pmin="${pv%%-*}"
+				pv="${pv##${pmin}-}"
+				pmax="${pv%%_*}"
+				pcur="${version/./}"
+				if [ $pmin -le $pcur ] && [ $pcur -le $pmax ]; then
+					cp "$p" "$version/$suite/$variant/"
+					has_patches=yes
+				fi
+			done
+			if [ "$has_patches" = 'no' ]; then
+				sed -ri \
+					-e '/##<has-patches>##/,/##<\/has-patches>##/d' \
+					"$version/$suite/$variant/Dockerfile"
+			fi
+
 			if [ "$variant" = 'apache' ]; then
 				cp -a apache2-foreground "$version/$suite/$variant/"
 			fi

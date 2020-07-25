@@ -1,4 +1,10 @@
-FROM debian:%%DEBIAN_TAG%%
+#
+# NOTE: THIS DOCKERFILE IS GENERATED VIA "update.sh"
+#
+# PLEASE DO NOT EDIT IT DIRECTLY.
+#
+
+FROM debian:buster-slim
 
 # prevent Debian's PHP packages from being installed
 # https://github.com/docker-library/php/pull/542
@@ -55,12 +61,12 @@ ENV PHP_CFLAGS="-fstack-protector-strong -fpic -fpie -O2 -D_LARGEFILE_SOURCE -D_
 ENV PHP_CPPFLAGS="$PHP_CFLAGS"
 ENV PHP_LDFLAGS="-Wl,-O1 -pie"
 
-ENV GPG_KEYS %%GPG_KEYS%%
+ENV GPG_KEYS 0BD78B5F97500D450838F95DFE857D9A90D90EC1 6E4F6AB321FDC07F2C332E3AC2BF0BC433CFC8B3
 
-ENV PHP_VERSION %%PHP_VERSION%%
-ENV PHP_URL="%%PHP_URL%%" PHP_ASC_URL="%%PHP_ASC_URL%%"
-ENV PHP_SHA256="%%PHP_SHA256%%" PHP_MD5="%%PHP_MD5%%"
-ENV PHP_DEBUG %%PHP_DEBUG%%
+ENV PHP_VERSION 5.6.40
+ENV PHP_URL="https://www.php.net/distributions/php-5.6.40.tar.xz" PHP_ASC_URL="https://www.php.net/distributions/php-5.6.40.tar.xz.asc"
+ENV PHP_SHA256="1369a51eee3995d7fbd1c5342e5cc917760e276d561595b6052b21ace2656d1c" PHP_MD5=""
+ENV PHP_DEBUG no
 
 RUN set -eux; \
 	\
@@ -106,25 +112,10 @@ COPY *.patch ${PHP_PATCH_DIR}/
 RUN set -eux; \
 	\
 	savedAptMark="$(apt-mark showmanual)"; \
-##<argon2-stretch>##
-	sed -e 's/stretch/buster/g' /etc/apt/sources.list > /etc/apt/sources.list.d/buster.list; \
-	{ \
-		echo 'Package: *'; \
-		echo 'Pin: release n=buster*'; \
-		echo 'Pin-Priority: -10'; \
-		echo; \
-		echo 'Package: libargon2*'; \
-		echo 'Pin: release n=buster*'; \
-		echo 'Pin-Priority: 990'; \
-	} > /etc/apt/preferences.d/argon2-buster; \
-##</argon2-stretch>##
 	apt-get update; \
 	apt-get install -y --no-install-recommends \
-		libargon2-dev \
 		libcurl4-openssl-dev \
 		libedit-dev \
-		libonig-dev \
-		libsodium-dev \
 		libsqlite3-dev \
 		libssl-dev \
 		libxml2-dev \
@@ -163,10 +154,6 @@ RUN set -eux; \
 		--enable-mbstring \
 # --enable-mysqlnd is included here because it's harder to compile after the fact than extensions are (since it's a plugin for several extensions, not an extension in itself)
 		--enable-mysqlnd \
-# https://wiki.php.net/rfc/argon2_password_hash (7.2+)
-		--with-password-argon2 \
-# https://wiki.php.net/rfc/libsodium
-		--with-sodium=shared \
 # always build against system sqlite3 (https://github.com/php/php-src/commit/6083a387a81dbbd66d6316a3a12a63f06d5f7109)
 		--with-pdo-sqlite=/usr \
 		--with-sqlite3=/usr \
@@ -175,9 +162,6 @@ RUN set -eux; \
 		--with-libedit \
 		--with-openssl \
 		--with-zlib \
-		\
-# in PHP 7.4+, the pecl/pear installers are officially deprecated (requiring an explicit "--with-pear") and will be removed in PHP 8+; see also https://github.com/docker-library/php/issues/846#issuecomment-505638494
-		--with-pear \
 		\
 # bundled pcre does not support JIT on s390x
 # https://manpages.debian.org/stretch/libpcre3-dev/pcrejit.3.en.html#AVAILABILITY_OF_JIT_SUPPORT
@@ -218,9 +202,6 @@ RUN set -eux; \
 	php --version
 
 COPY docker-php-ext-* docker-php-entrypoint /usr/local/bin/
-
-# sodium was built as a shared module (so that it can be replaced later if so desired), so let's enable it too (https://github.com/docker-library/php/issues/598)
-RUN docker-php-ext-enable sodium
 
 # temporary "freetype-config" workaround for https://github.com/docker-library/php/issues/865 (https://bugs.php.net/bug.php?id=76324)
 RUN { echo '#!/bin/sh'; echo 'exec pkg-config "$@" freetype2'; } > /usr/local/bin/freetype-config && chmod +x /usr/local/bin/freetype-config
