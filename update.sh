@@ -52,6 +52,11 @@ declare -A gpgKeys=(
 	# https://www.php.net/gpg-keys.php#gpg-5.4
 	[5.4]='F38252826ACD957EF380D39F2F7956BC5DA04B5D'
 
+	# https://wiki.php.net/todo/php53
+	# dsp & johannes
+	# https://www.php.net/gpg-keys.php#gpg-5.3
+	[5.3]='0B96609E270F565C13292B24C13C70B87267B52D 0A95E9A026542D53835E3F3A7DEC4E69FC9C83D7'
+
 )
 # see https://www.php.net/downloads.php
 
@@ -84,7 +89,7 @@ for version in "${versions[@]}"; do
 	fi
 
 	# scrape the relevant API based on whether we're looking for pre-releases
-	apiUrl="https://www.php.net/releases/index.php?json&max=100&version=${rcVersion%%.*}"
+	apiUrl="https://www.php.net/releases/index.php?json&max=1000&version=${rcVersion%%.*}"
 	apiJqExpr='
 		(keys[] | select(startswith("'"$rcVersion"'."))) as $version
 		| [ $version, (
