@@ -78,24 +78,35 @@ RUN set -eux; \
 	mkdir -p /usr/src; \
 	cd /usr/src; \
 	\
-	curl --retry 3 --retry-delay 5 --connect-timeout 10 -fsSL -o php.tar.xz "$PHP_URL"; \
+	if echo "$PHP_URL" | grep -q '.bz2'; then \
+		TARBALL_NAME='php.tar.bz2'; \
+	else \
+		TARBALL_NAME='php.tar.xz'; \
+	fi; \
+	curl --retry 3 --retry-delay 5 --connect-timeout 10 -fsSL -o "$TARBALL_NAME" "$PHP_URL"; \
 	\
 	if [ -n "$PHP_SHA256" ]; then \
-		echo "$PHP_SHA256 *php.tar.xz" | sha256sum -c -; \
+		echo "$PHP_SHA256 *$TARBALL_NAME" | sha256sum -c -; \
 	fi; \
 	if [ -n "$PHP_MD5" ]; then \
-		echo "$PHP_MD5 *php.tar.xz" | md5sum -c -; \
+		echo "$PHP_MD5 *$TARBALL_NAME" | md5sum -c -; \
 	fi; \
 	\
 	if [ -n "$PHP_ASC_URL" ]; then \
-		curl -fsSL -o php.tar.xz.asc "$PHP_ASC_URL"; \
+		curl -fsSL -o "$TARBALL_NAME.asc" "$PHP_ASC_URL"; \
 		export GNUPGHOME="$(mktemp -d)"; \
 		for key in $GPG_KEYS; do \
 			gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys "$key"; \
 		done; \
-		gpg --batch --verify php.tar.xz.asc php.tar.xz; \
+		gpg --batch --verify "$TARBALL_NAME.asc" "$TARBALL_NAME"; \
 		gpgconf --kill all; \
 		rm -rf "$GNUPGHOME"; \
+	fi; \
+	if [ "$TARBALL_NAME" = 'php.tar.bz2' ]; then \
+		mkdir -p php-dir; \
+		tar xjf php.tar.bz2 --strip-components=1 -C php-dir; \
+		tar cJf php.tar.xz php-dir; \
+		rm -rf php.tar.bz2 php-dir; \
 	fi; \
 	\
 	apt-mark auto '.*' > /dev/null; \

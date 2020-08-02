@@ -47,6 +47,11 @@ declare -A gpgKeys=(
 	# https://www.php.net/gpg-keys.php#gpg-5.5
 	[5.5]='0B96609E270F565C13292B24C13C70B87267B52D 0BD78B5F97500D450838F95DFE857D9A90D90EC1 F38252826ACD957EF380D39F2F7956BC5DA04B5D'
 
+	# https://wiki.php.net/todo/php54
+	# stas & dsp
+	# https://www.php.net/gpg-keys.php#gpg-5.4
+	[5.4]='F38252826ACD957EF380D39F2F7956BC5DA04B5D'
+
 )
 # see https://www.php.net/downloads.php
 
@@ -73,13 +78,18 @@ githubMatrix=
 for version in "${versions[@]}"; do
 	rcVersion="${version%-rc}"
 
+	distExt='.xz'
+	if [[ ${rcVersion//./} -le 54 ]]; then
+		distExt='.bz2'
+	fi
+
 	# scrape the relevant API based on whether we're looking for pre-releases
 	apiUrl="https://www.php.net/releases/index.php?json&max=100&version=${rcVersion%%.*}"
 	apiJqExpr='
 		(keys[] | select(startswith("'"$rcVersion"'."))) as $version
 		| [ $version, (
 			.[$version].source[]
-			| select(.filename // "" | endswith(".xz"))
+			| select(.filename // "" | endswith("'"$distExt"'"))
 			|
 				"https://www.php.net/distributions/" + .filename,
 				"https://www.php.net/distributions/" + .filename + ".asc",
